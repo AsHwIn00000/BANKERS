@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Management System — Banker's Algorithm</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --black: #0d0d0d;
+      --white: #ffffff;
+      --gray-100: #f5f5f5;
+      --gray-200: #e8e8e8;
+      --gray-400: #aaaaaa;
+      --gray-600: #666666;
+      --green: #1db954;
+      --green-light: #e8f8ee;
+      --red: #e03e3e;
+      --red-light: #fdeaea;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      color: var(--black);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--black);
+      color: var(--white);
+      padding: 28px 40px 24px;
+      border-bottom: 3px solid var(--green);
+    }
+
+    .header-tag {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: var(--gray-400);
+      font-weight: 300;
+    }
+
+    /* MAIN LAYOUT */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+
+    /* STEP CARD */
+    .step-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+
+    .step-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      background: var(--black);
+      color: var(--white);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .step-hint {
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-bottom: 20px;
+      line-height: 1.6;
+      background: var(--gray-100);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+
+    /* CONFIG ROW */
+    .config-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-group label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--gray-600);
+      text-transform: uppercase;
+    }
+
+    .field-group input[type=number] {
+      width: 90px;
+      height: 44px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 0 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--black);
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field-group input[type=number]:focus {
+      border-color: var(--black);
+    }
+
+    /* BUTTON */
+    .btn {
+      height: 44px;
+      padding: 0 24px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid var(--black);
+      background: var(--black);
+      color: var(--white);
+      transition: all 0.15s;
+      letter-spacing: 0.2px;
+    }
+
+    .btn:hover {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .btn-run {
+      height: 52px;
+      padding: 0 36px;
+      font-size: 15px;
+      border-radius: 10px;
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--white);
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .btn-run:hover {
+      background: #18a849;
+      border-color: #18a849;
+      color: var(--white);
+    }
+
+    /* TABLE */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'DM Mono', monospace;
+    }
+
+    thead th:first-child {
+      text-align: left;
+      border-radius: 8px 0 0 0;
+    }
+
+    thead th:last-child {
+      border-radius: 0 8px 0 0;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--gray-100);
+    }
+
+    tbody td {
+      padding: 10px 16px;
+      text-align: center;
+    }
+
+    tbody td:first-child {
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-600);
+      font-family: 'DM Mono', monospace;
+    }
+
+    tbody td input[type=number] {
+      width: 64px;
+      height: 36px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 6px;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      font-weight: 500;
+      outline: none;
+      background: var(--white);
+      transition: border-color 0.15s;
+    }
+
+    tbody td input[type=number]:focus {
+      border-color: var(--accent);
+    }
+
+    /* GROUP HEADER in table */
+    .col-group-header {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      font-weight: 700;
+    }
+
+    /* RESULT CARD */
+    .result-card {
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .result-card.safe {
+      background: var(--green-light);
+      border: 2px solid var(--green);
+    }
+
+    .result-card.unsafe {
+      background: var(--red-light);
+      border: 2px solid var(--red);
+    }
+
+    .result-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .status-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .safe .status-icon {
+      background: var(--green);
+    }
+
+    .unsafe .status-icon {
+      background: var(--red);
+    }
+
+    .status-text h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .safe .status-text h2 {
+      color: #0f6b30;
+    }
+
+    .unsafe .status-text h2 {
+      color: var(--red);
+    }
+
+    .status-text p {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    /* Safe sequence */
+    .sequence-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .seq-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      margin-right: 4px;
+    }
+
+    .seq-chip {
+      background: var(--white);
+      border: 2px solid var(--green);
+      color: #0f6b30;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+
+    .seq-arrow {
+      color: var(--green);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Need table result */
+    .need-section {
+      display: none;
+      margin-bottom: 24px;
+    }
+
+    .need-section table thead th {
+      background: var(--accent);
+    }
+
+    /* Steps log */
+    .steps-log {
+      background: var(--black);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-top: 16px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .steps-log p {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      line-height: 2;
+      color: #ccc;
+    }
+
+    .steps-log .s-ok {
+      color: var(--green);
+    }
+
+    .steps-log .s-err {
+      color: #ff6b6b;
+    }
+
+    .steps-log .s-head {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .steps-log .s-wait {
+      color: #f0c040;
+    }
+
+    /* Available pill */
+    .avail-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .avail-pill {
+      background: var(--accent-light);
+      border: 1.5px solid var(--accent);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .avail-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1.5px solid var(--gray-200);
+      margin: 8px 0 20px;
+    }
+
+    /* Simulation Area */
+    .simulation-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: none;
+      overflow: hidden;
+    }
+
+    .road-container {
+      background: #2a2a2a;
+      border-top: 2px dashed #ffc107;
+      border-bottom: 2px dashed #ffc107;
+      border-radius: 4px;
+      padding: 20px;
+      position: relative;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .road-divider {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background-image: linear-gradient(to right, #fff 50%, transparent 50%);
+      background-size: 40px 4px;
+      transform: translateY(-50%);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .vehicle {
+      width: 60px;
+      height: 36px;
+      background: var(--accent);
+      color: var(--white);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      position: relative;
+      z-index: 2;
+      --tx: 0px;
+      transform: translateX(var(--tx));
+      transition: transform 1.2s ease-in-out, background-color 0.5s ease, width 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .vehicle.safe-cross {
+      background: var(--green);
+    }
+
+    .vehicle.unsafe-stuck {
+      background: var(--red);
+      animation: shake-blocked 0.5s infinite alternate;
+      box-shadow: 0 0 15px rgba(224, 62, 62, 0.6);
+    }
+
+    @keyframes shake-blocked {
+      0% {
+        transform: translateX(var(--tx)) scale(1);
+      }
+
+      100% {
+        transform: translateX(calc(var(--tx) + 6px)) scale(1.02);
+      }
+    }
+
+    .roadblock {
+      position: absolute;
+      left: 60%;
+      top: 5px;
+      bottom: 5px;
+      width: 25px;
+      background: repeating-linear-gradient(45deg, #ffcc00, #ffcc00 10px, #222 10px, #222 20px);
+      border: 2px solid #fff;
+      border-radius: 6px;
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(-120%);
+      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .roadblock.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .roadblock-text {
+      transform: rotate(-90deg);
+      color: white;
+      font-weight: 800;
+      font-size: 12px;
+      background: #e03e3e;
+      padding: 4px 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 600px) {
+      .header {
+        padding: 20px 18px 16px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .step-card {
+        padding: 20px 16px;
+      }
+
+      tbody td input[type=number] {
+        width: 50px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-tag">OS Project — Deadlock Avoidance</div>
+    <h1>🚦 Traffic Management System</h1>
+    <p>Banker's Algorithm Simulation &nbsp;·&nbsp; Safe & Unsafe State Detection</p>
+  </div>
+
+  <div class="container">
+
+    <!-- STEP 1 -->
+    <div class="step-card">
+      <div class="step-label">
+        <div class="step-num">1</div>
+        <div class="step-title">Set Number of Processes & Resources</div>
+      </div>
+      <div class="step-hint">
+        Enter how many <strong>VECHILES (processes)</strong> and how many <strong>ROAD SECTION (resources)</strong>
+        exist in your system. Then click <strong>Generate Tables</strong>.
+      </div>
+      <div class="config-row">
+        <div class="field-group">
+          <label>Vechiles (Process)</label>
+          <input type="number" id="nP" min="1" max="8" value="5">
+        </div>
+        <div class="field-group">
+          <label>Road Sections(Resource) </label>
+          <input type="number" id="nR" min="1" max="5" value="3">
+        </div>
+        <button class="btn" onclick="generateTables()">Generate Tables</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card" id="step2Card" style="display:none;">
+      <div class="step-label">
+        <div class="step-num">2</div>
+        <div class="step-title">Enter System Data</div>
+      </div>
+      <div class="step-hint">
+        Fill in the <strong>Available</strong> resources, then the <strong>Max</strong> (maximum each process will ever
+        need) and <strong>Allocation</strong> (currently held) values. Need is auto-calculated.
+      </div>
+
+      <!-- Available -->
+      <div
+        style="font-size:13px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">
+        Available Resources</div>
+      <div class="table-wrap" style="margin-bottom:22px;">
+        <table>
+          <thead>
+            <tr id="availHead"></tr>
+          </thead>
+          <tbody>
+            <tr id="availRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Max + Allocation combined -->
+      <div
+        style="font-size:13px;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">
+        Max Demand & Allocation per Process</div>
+      <div class="table-wrap">
+        <table id="mainTable"></table>
+      </div>
+
+      <button class="btn-run btn" onclick="runAlgorithm()">▶ Run Banker's Algorithm</button>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-card safe" id="safeResult">
+      <div class="result-status">
+        <div class="status-icon">✓</div>
+        <div class="status-text">
+          <h2>Safe State — No Deadlock</h2>
+          <p>The system can complete all processes safely.</p>
+        </div>
+      </div>
+      <div class="avail-label">Safe Execution Sequence</div>
+      <div class="sequence-row" id="seqRow"></div>
+      <div class="avail-label">Available After Compute</div>
+      <div class="avail-pills" id="availPills"></div>
+      <div class="steps-log" id="stepsLog"></div>
+    </div>
+
+    <div class="result-card unsafe" id="unsafeResult">
+      <div class="result-status">
+        <div class="status-icon">✗</div>
+        <div class="status-text">
+          <h2>Unsafe State — Deadlock Risk!</h2>
+          <p>No safe sequence exists. The system may deadlock.</p>
+        </div>
+      </div>
+      <div class="steps-log" id="stepsLogUnsafe"></div>
+    </div>
+
+    <!-- NEED TABLE RESULT -->
+    <div class="need-section step-card" id="needSection">
+      <div class="step-label">
+        <div class="step-num" style="background:var(--accent);">N</div>
+        <div class="step-title">Computed Need Matrix &nbsp;<span
+            style="font-size:12px;color:var(--gray-600);font-weight:400;">(Need = Max − Allocation)</span></div>
+      </div>
+      <div class="table-wrap">
+        <table id="needTable"></table>
+      </div>
+    </div>
+
+    <!-- SIMULATION ANIMATION -->
+    <div class="simulation-card" id="simulationCard">
+      <div class="step-label">
+        <div class="step-num" style="background:var(--accent);">V</div>
+        <div class="step-title">Execution Simulation</div>
+      </div>
+      <div class="step-hint">
+        Visualizing processes as vehicles crossing the execution section. <br>
+        <strong>Blue</strong>: Waiting. <strong>Green</strong>: Completed successfully. <strong>Red</strong>: Deadlocked
+        / Unsafe.
+      </div>
+      <div class="road-container" id="roadContainer">
+        <div class="road-divider"></div>
+        <!-- Vehicles injected via JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let N = 0, R = 0;
+
+    function generateTables() {
+      N = Math.max(1, Math.min(8, parseInt(document.getElementById('nP').value) || 5));
+      R = Math.max(1, Math.min(5, parseInt(document.getElementById('nR').value) || 3));
+
+      // Available header + row
+      const availHead = document.getElementById('availHead');
+      const availRow = document.getElementById('availRow');
+      availHead.innerHTML = '<th style="text-align:left;padding:12px 16px;background:#0d0d0d;color:#fff;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Resource</th>';
+      availRow.innerHTML = '<td style="font-weight:600;font-family:DM Mono,monospace;font-size:13px;color:#666;padding:10px 16px;">Available Units</td>';
+      for (let j = 0; j < R; j++) {
+        availHead.innerHTML += `<th>R${j + 1}</th>`;
+        availRow.innerHTML += `<td><input type="number" id="avail_${j}" min="0" value="${3 + j}" /></td>`;
+      }
+
+      // Main table
+      const t = document.getElementById('mainTable');
+      let html = `<thead>
+    <tr>
+      <th style="text-align:left;">Process</th>`;
+      for (let j = 0; j < R; j++) html += `<th>Max R${j + 1}</th>`;
+      for (let j = 0; j < R; j++) html += `<th>Alloc R${j + 1}</th>`;
+      html += `</tr></thead><tbody>`;
+
+      const defMax = [[7, 5, 3], [3, 2, 2], [9, 0, 2], [4, 2, 2], [5, 3, 3]];
+      const defAlloc = [[0, 1, 0], [2, 0, 0], [3, 0, 2], [2, 1, 1], [0, 0, 2]];
+
+      for (let i = 0; i < N; i++) {
+        html += `<tr><td>P${i}</td>`;
+        for (let j = 0; j < R; j++) {
+          const v = defMax[i]?.[j] ?? 0;
+          html += `<td><input type="number" id="max_${i}_${j}" min="0" value="${v}"></td>`;
+        }
+        for (let j = 0; j < R; j++) {
+          const v = defAlloc[i]?.[j] ?? 0;
+          html += `<td><input type="number" id="alloc_${i}_${j}" min="0" value="${v}"></td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody>`;
+      t.innerHTML = html;
+
+      document.getElementById('step2Card').style.display = 'block';
+      document.getElementById('safeResult').style.display = 'none';
+      document.getElementById('unsafeResult').style.display = 'none';
+      document.getElementById('needSection').style.display = 'none';
+      document.getElementById('step2Card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function runAlgorithm() {
+      // Read available
+      const available = [];
+      for (let j = 0; j < R; j++) available.push(parseInt(document.getElementById(`avail_${j}`).value) || 0);
+
+      // Read max & allocation
+      const max = [], alloc = [];
+      for (let i = 0; i < N; i++) {
+        max.push([]); alloc.push([]);
+        for (let j = 0; j < R; j++) {
+          max[i].push(parseInt(document.getElementById(`max_${i}_${j}`).value) || 0);
+          alloc[i].push(parseInt(document.getElementById(`alloc_${i}_${j}`).value) || 0);
+        }
+      }
+
+      // Compute need
+      const need = max.map((row, i) => row.map((v, j) => v - alloc[i][j]));
+
+      // Validate
+      for (let i = 0; i < N; i++)
+        for (let j = 0; j < R; j++)
+          if (need[i][j] < 0) {
+            alert(`P${i}: Allocation > Max for R${j + 1}. Please fix.`);
+            return;
+          }
+
+      // Build need table
+      buildNeedTable(need, available, alloc);
+
+      // Safety algorithm
+      const work = [...available];
+      const finish = new Array(N).fill(false);
+      const sequence = [];
+      const steps = [];
+
+      let found = true;
+      while (found) {
+        found = false;
+        for (let i = 0; i < N; i++) {
+          if (!finish[i]) {
+            let canRun = true;
+            for (let j = 0; j < R; j++) if (need[i][j] > work[j]) { canRun = false; break; }
+            if (canRun) {
+              steps.push({ proc: `P${i}`, need: [...need[i]], work: [...work], type: 'ok' });
+              for (let j = 0; j < R; j++) work[j] += alloc[i][j];
+              steps.push({ proc: `P${i}`, work: [...work], type: 'finish' });
+              finish[i] = true;
+              sequence.push(`P${i}`);
+              found = true;
+            }
+          }
+        }
+      }
+
+      const isSafe = finish.every(Boolean);
+
+      if (isSafe) {
+        showSafe(sequence, steps, available, work);
+      } else {
+        showUnsafe(steps, finish);
+      }
+    }
+
+    function buildNeedTable(need, available, alloc) {
+      const t = document.getElementById('needTable');
+      let html = `<thead><tr><th style="text-align:left;">Process</th>`;
+      for (let j = 0; j < R; j++) html += `<th>Need R${j + 1}</th>`;
+      html += `</tr></thead><tbody>`;
+      for (let i = 0; i < N; i++) {
+        html += `<tr><td>P${i}</td>`;
+        for (let j = 0; j < R; j++) html += `<td>${need[i][j]}</td>`;
+        html += `</tr>`;
+      }
+      html += `</tbody>`;
+      t.innerHTML = html;
+      document.getElementById('needSection').style.display = 'block';
+    }
+
+    function showSafe(sequence, steps, available, finalWork) {
+      document.getElementById('safeResult').style.display = 'block';
+      document.getElementById('unsafeResult').style.display = 'none';
+
+      // Sequence chips
+      const sr = document.getElementById('seqRow');
+      sr.innerHTML = '';
+      sequence.forEach((p, idx) => {
+        const chip = document.createElement('span');
+        chip.className = 'seq-chip';
+        chip.textContent = p;
+        sr.appendChild(chip);
+        if (idx < sequence.length - 1) {
+          const arr = document.createElement('span');
+          arr.className = 'seq-arrow';
+          arr.textContent = '→';
+          sr.appendChild(arr);
+        }
+      });
+
+      // Available pills
+      const pills = document.getElementById('availPills');
+      pills.innerHTML = '';
+      for (let j = 0; j < R; j++) {
+        pills.innerHTML += `<span class="avail-pill">R${j + 1}: ${finalWork[j]}</span>`;
+      }
+
+      // Steps log
+      const log = document.getElementById('stepsLog');
+      log.innerHTML = '';
+      steps.forEach(s => {
+        const p = document.createElement('p');
+        if (s.type === 'ok') {
+          p.className = 's-ok';
+          p.textContent = `✔  ${s.proc}  Need[${s.need.join(', ')}]  ≤  Work[${s.work.join(', ')}]  → Granted`;
+        } else if (s.type === 'finish') {
+          p.className = 's-head';
+          p.textContent = `   ${s.proc} finishes → Work now [${s.work.join(', ')}]`;
+        }
+        log.appendChild(p);
+      });
+
+      document.getElementById('safeResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Trigger animation based on the determined safe sequence
+      initSimulation(N);
+      playSafeAnimation(sequence);
+    }
+
+    function showUnsafe(steps, finish) {
+      document.getElementById('safeResult').style.display = 'none';
+      document.getElementById('unsafeResult').style.display = 'block';
+
+      const log = document.getElementById('stepsLogUnsafe');
+      log.innerHTML = '';
+
+      steps.forEach(s => {
+        const p = document.createElement('p');
+        if (s.type === 'ok') {
+          p.className = 's-ok';
+          p.textContent = `✔  ${s.proc}  Need[${s.need.join(', ')}]  ≤  Work[${s.work.join(', ')}]  → Granted`;
+        } else {
+          p.className = 's-head';
+          p.textContent = `   ${s.proc} finishes → Work [${s.work.join(', ')}]`;
+        }
+        log.appendChild(p);
+      });
+
+      const stuck = finish.map((f, i) => !f ? `P${i}` : null).filter(Boolean);
+      const p = document.createElement('p');
+      p.className = 's-err';
+      const stuckLabel = stuck.length === 1 ? 'Process stuck' : 'Processes stuck';
+      p.textContent = `✘  ${stuckLabel} (cannot proceed): ${stuck.join(', ')} — DEADLOCK DETECTED`;
+      log.appendChild(p);
+
+      document.getElementById('unsafeResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // trigger unsafe animation which links to partial Banker's Algorithm output
+      initSimulation(N);
+      const partialSequence = [];
+      steps.forEach(s => {
+        // extract any processes that completed before deadlock
+        if (s.type === 'finish') partialSequence.push(s.proc);
+      });
+      playUnsafeAnimation(partialSequence, finish);
+    }
+
+    // ------ ANIMATION LOGIC ------
+
+    const simulationSpeed = 1200; // time in ms for a vehicle to cross
+
+    /**
+     * Initializes the visual simulation area.
+     * Called automatically when user clicks "Run Banker's Algorithm".
+     * Vehicles are created dynamically based on the number of processes.
+     */
+    function initSimulation(numProcesses) {
+      const road = document.getElementById('roadContainer');
+      // clear existing vehicles from a previous run
+      const existing = road.querySelectorAll('.vehicle, .roadblock');
+      existing.forEach(v => v.remove());
+
+      // Creates a DOM element for each process to act as a moving vehicle
+      for (let i = 0; i < numProcesses; i++) {
+        const v = document.createElement('div');
+        v.className = 'vehicle';
+        v.id = `veh_P${i}`;
+        v.textContent = `P${i}`;
+        road.appendChild(v);
+      }
+      document.getElementById('simulationCard').style.display = 'block';
+    }
+
+    /**
+     * Animates a safe sequence step by step.
+     * Linked to the Banker's Algorithm successful output.
+     */
+    async function playSafeAnimation(sequence) {
+      await new Promise(r => setTimeout(r, 600)); // small delay before start
+      const roadWidth = document.getElementById('roadContainer').clientWidth;
+
+      // iterate over the safe sequence one by one
+      for (let i = 0; i < sequence.length; i++) {
+        const pName = sequence[i];
+        const v = document.getElementById(`veh_${pName}`);
+        if (v) {
+          // transform CSS to move the vehicle across the "road"
+          v.style.setProperty('--tx', `${roadWidth - v.clientWidth - 20}px`);
+          await new Promise(r => setTimeout(r, simulationSpeed));
+
+          // change color to green by adding the 'safe-cross' class
+          v.classList.add('safe-cross');
+          v.style.width = '80px';
+          v.innerHTML = `✅ ${pName}`;
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+    }
+
+    /**
+     * Animates a blocked (unsafe) sequence.
+     * Partially safe processes move, while blocked ones hit a barrier and shake.
+     */
+    async function playUnsafeAnimation(partialSequence, finishArray) {
+      await new Promise(r => setTimeout(r, 600));
+      const road = document.getElementById('roadContainer');
+      const roadWidth = road.clientWidth;
+
+      // Animate partial safe ones first using async/await
+      for (let i = 0; i < partialSequence.length; i++) {
+        const pName = partialSequence[i];
+        const v = document.getElementById(`veh_${pName}`);
+        if (v) {
+          v.style.setProperty('--tx', `${roadWidth - v.clientWidth - 20}px`);
+          await new Promise(r => setTimeout(r, simulationSpeed));
+          v.classList.add('safe-cross');
+          v.style.width = '80px';
+          v.innerHTML = `✅ ${pName}`;
+          await new Promise(r => setTimeout(r, 300));
+        }
+      }
+
+      // Drop a roadblock barrier for the remaining vehicles
+      const barrier = document.createElement('div');
+      barrier.className = 'roadblock';
+      barrier.innerHTML = '<span class="roadblock-text">RESOURCES LOCKED</span>';
+      road.appendChild(barrier);
+
+      // Give the browser a tick to render the barrier before applying active class
+      await new Promise(r => requestAnimationFrame(r));
+      barrier.classList.add('active');
+      await new Promise(r => setTimeout(r, 600)); // wait for barrier bounce animation
+
+      // Find the exact screen position of the barrier to drive cars up to it
+      const barrierLeft = roadWidth * 0.6;
+
+      // Move stuck processes up to the barrier
+      let stuckCount = 0;
+      for (let i = 0; i < finishArray.length; i++) {
+        if (!finishArray[i]) {
+          const v = document.getElementById(`veh_P${i}`);
+          if (v) {
+            // move vehicle towards the barrier, staggered
+            setTimeout(() => {
+              v.style.setProperty('--tx', `${barrierLeft - 140}px`);
+            }, stuckCount * 300);
+            stuckCount++;
+          }
+        }
+      }
+
+      // Wait for all stuck vehicles to finish moving
+      await new Promise(r => setTimeout(r, simulationSpeed + stuckCount * 300));
+
+      // Turn them red, wide, and shaking
+      for (let i = 0; i < finishArray.length; i++) {
+        if (!finishArray[i]) {
+          const v = document.getElementById(`veh_P${i}`);
+          if (v) {
+            v.classList.add('unsafe-stuck');
+            v.style.width = '120px';
+            v.innerHTML = `🛑 P${i} Blocked`;
+          }
+        }
+      }
+    }
+  </script>
+
+</body>
+
+</html>
